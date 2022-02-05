@@ -1,7 +1,12 @@
 import React from 'react'
 import { View, Text, SafeAreaView, FlatList } from 'react-native'
+import { useState, useEffect } from 'react';
+//import { db } from '../firbase-config';
+//import {collection, getDocs} from 'firebase/firestore';
 
 const Home = () => {
+    const [myNotes, setMyNotes] = useState([])
+    //const myNotesRef = collection(db, 'mynotes');
 
     const notes = [
         {
