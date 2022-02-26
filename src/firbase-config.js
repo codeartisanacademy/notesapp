@@ -1,15 +1,16 @@
 import { initializeApp } from "firebase/app";
-import { getFirestore } from '@firebase/firestore';
+import { getFirestore } from "@firebase/firestore";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyDdReGGjcyU35q4JuXLTJCWWGDQU5j5m1M",
-    authDomain: "caa-notesapp.firebaseapp.com",
-    projectId: "caa-notesapp",
-    storageBucket: "caa-notesapp.appspot.com",
-    messagingSenderId: "717631692482",
-    appId: "1:717631692482:web:f18cc969fa3028f9d6a55b"
+    apiKey: "AIzaSyCEhLY9st_IjKEGwlfr8Kn8poVRXcchNAA",
+    authDomain: "notesapp-110a3.firebaseapp.com",
+    projectId: "notesapp-110a3",
+    storageBucket: "notesapp-110a3.appspot.com",
+    messagingSenderId: "728609731600",
+    appId: "1:728609731600:web:4a3df5efb9ab9d75014695"
   };
 
   const app = initializeApp(firebaseConfig);
 
-  export const db = getFirestore(app);
+  // create a connection to our firestore db
+  export const firestoreDb = getFirestore(app); 

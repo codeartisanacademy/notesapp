@@ -1,53 +1,84 @@
 import React from 'react'
-import { View, Text, SafeAreaView, FlatList } from 'react-native'
+import { View, Text, SafeAreaView, FlatList, StyleSheet, TouchableOpacity, Modal } from 'react-native'
 import { useState, useEffect } from 'react';
-//import { db } from '../firbase-config';
-//import {collection, getDocs} from 'firebase/firestore';
+import { firestoreDb } from '../firbase-config';
+import { collection, getDocs, onSnapshot } from 'firebase/firestore';
 
 const Home = () => {
-    const [myNotes, setMyNotes] = useState([])
-    //const myNotesRef = collection(db, 'mynotes');
+    const [myNotes, setMyNotes] = useState([]);
+    const notesCollectionRef = collection(firestoreDb, "notes");
+    const [modalDetailVisible, setModalDetailVisible] = useState(false);
+    const [selected, setSelected] = useState(null);
 
-    const notes = [
-        {
-            'id':'1',
-            'title':'My thoughts',
-            'content': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam elementum mattis massa, in vehicula arcu molestie a. Morbi ligula felis, ullamcorper sed convallis nec, tincidunt vestibulum justo. Aliquam a porta mi. Praesent rutrum elit et rutrum molestie. Mauris accumsan congue urna mattis efficitur.',
-            'date':'2022-01-29',
-            'photos':[]
-        },
-        {
-            'id':'2',
-            'title':'Ideas for Blockchain App',
-            'content': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam elementum mattis massa, in vehicula arcu molestie a. Morbi ligula felis, ullamcorper sed convallis nec, tincidunt vestibulum justo. Aliquam a porta mi. Praesent rutrum elit et rutrum molestie. Mauris accumsan congue urna mattis efficitur.',
-            'date':'2022-01-27',
-            'photos':[]
-        },
-        {
-            'id':'3',
-            'title':'Travel plan',
-            'content': 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam elementum mattis massa, in vehicula arcu molestie a. Morbi ligula felis, ullamcorper sed convallis nec, tincidunt vestibulum justo. Aliquam a porta mi. Praesent rutrum elit et rutrum molestie. Mauris accumsan congue urna mattis efficitur.',
-            'date':'2022-01-27',
-            'photos':[]
-        },
-    ]
+    const getNotes = async () => {
+        const data = await getDocs(notesCollectionRef);
+        //console.log(data.docs);
+        let notes = []
+        data.forEach(doc=>{
+            //console.log(doc.id, ':', doc.data());   
+            notes.push({id:doc.id, ...doc.data()}) // [{id:'', title:'', content:'', likes:x}, {id:'', title:'', content:'', likes:x}]
+        })
+        console.log(notes);
+        setMyNotes(notes);
+    }
+
+    const handleDetailPress = ()=>{
+        setModalDetailVisible(true);
+        
+    }
+
+    useEffect(() => {
+        getNotes();
+    }, []);
+
+    
 
     return (
         <SafeAreaView>
-            <Text>All Notes</Text>
-            <FlatList
-                data={notes}
-                renderItem={({item})=>{
-                    return(
-                        <View>
-                            <Text>{item.title}</Text>
-                        </View>
-                    )
+            <View style={styles.container}>
+                <View style={{flexDirection:'row', justifyContent:'end', marginBottom:20}}>
+                    <TouchableOpacity style={{backgroundColor:'#fff', padding:10, borderRadius:8}}><Text>+</Text></TouchableOpacity>
+                </View>
+                <Text style={{fontWeight:"bold", marginBottom:10}}>All Notes</Text>
+                <FlatList
+                    data={myNotes}
+                    renderItem={({item})=>{
+                        return(
+                            <View style={{paddingVertical:8}}>
+                                <TouchableOpacity onPress={handleDetailPress}><Text>{item.title}</Text></TouchableOpacity>
+                            </View>
+                        )
+                    }}
+                    keyExtractor={item=>item.id}
+                />
+            </View>
+            <Modal
+                animationType="slide"
+                transparent={false}
+                visible={modalDetailVisible}
+                onRequestClose={() => {
+                    setModalDetailVisible(!modalDetailVisible);
                 }}
-                keyExtractor={item=>item.id}
-            />
+            >
+                <View style={{flexDirection:'row', justifyContent:"end", padding:20}}>
+                    <TouchableOpacity onPress={()=>setModalDetailVisible(false)}><Text>Close</Text></TouchableOpacity>
+                </View>
+                
+            </Modal>
+            
         </SafeAreaView>
     )
 }
+
+const styles = StyleSheet.create({
+    container: {
+        padding:20,
+    },
+    addContainer:{
+        marginBottom:20,
+        flexDirection:'row',
+        justifyContent:'end'
+    }
+})
 
 export default Home
