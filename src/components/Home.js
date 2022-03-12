@@ -1,8 +1,8 @@
 import React from 'react'
-import { View, Text, SafeAreaView, FlatList, StyleSheet, TouchableOpacity, Modal, TextInput } from 'react-native'
+import { View, Text, SafeAreaView, FlatList, StyleSheet, TouchableOpacity, Modal, TextInput, ActivityIndicator } from 'react-native'
 import { useState, useEffect } from 'react';
 import { firestoreDb } from '../firbase-config';
-import { collection, getDocs, onSnapshot, setDoc } from 'firebase/firestore';
+import { collection, getDocs, onSnapshot, addDoc } from 'firebase/firestore';
 import { Ionicons } from '@expo/vector-icons'; 
 
 const Home = () => {
@@ -13,8 +13,12 @@ const Home = () => {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [selected, setSelected] = useState(null);
+    const [editMode, setEditMode] = useState(false);
+    const [editText, setEditText] = useState("Edit");
+    const [animating, setAnimating] = useState(false);
 
     const getNotes = async () => {
+        setAnimating(true);
         const data = await getDocs(notesCollectionRef);
         //console.log(data.docs);
         let notes = []
@@ -24,6 +28,7 @@ const Home = () => {
         })
         console.log(notes);
         setMyNotes(notes);
+        setAnimating(false);
     }
 
     const handleDetailPress = (item)=>{
@@ -37,6 +42,22 @@ const Home = () => {
     }
 
     const handleSubmit = async ()=>{
+        await addDoc(notesCollectionRef, {
+            title: title,
+            content: content
+        }) 
+        setModalAddNotesVisible(false);
+        getNotes();
+    }
+
+    const handleEdit = ()=>{
+        setEditMode(!editMode);
+        if(editText==="Edit"){
+            setEditText("Cancel");
+        }else{
+            setEditText("Edit");
+        }
+        
     }
 
     useEffect(() => {
@@ -52,6 +73,7 @@ const Home = () => {
                     <TouchableOpacity onPress={openModalAddNotes}><Ionicons name="add-circle-outline" size={24} color="black" /></TouchableOpacity>
                 </View>
                 <Text style={{fontWeight:"bold", marginBottom:10}}>All Notes</Text>
+                <ActivityIndicator animating={animating} />
                 <FlatList
                     data={myNotes}
                     renderItem={({item})=>{
@@ -77,9 +99,19 @@ const Home = () => {
                     
                 </View>
                 <View style={{padding:20, marginVertical:20}}>
-                    <Text style={{fontSize:30, fontWeight:"bold"}}>{selected?.title}</Text>
+                    
+                    <TextInput value={selected?.title} style={{fontSize:30, fontWeight:"bold"}} onChangeText={(value)=>setTitle(value)} />
                     <View style={{marginVertical:20}}>
-                        <Text style={{fontSize:20}}>{selected?.content}</Text>
+                        <TextInput multiline={true} value={selected?.content} style={{height:100, marginTop:8, marginBottom:20   }} onChangeText={(value)=>setContent(value)} />
+                    </View>
+                    <View style={{marginVertical:20, width:100}}>
+                        <TouchableOpacity style={{backgroundColor:'#efefef', padding:10}} onPress={handleEdit}><Text style={{alignSelf:'center'}} >{editText}</Text></TouchableOpacity> 
+                        {
+                            editMode ? (
+                                <TouchableOpacity style={{backgroundColor:'red', padding:10, marginTop:20}}><Text style={{alignSelf:'center'}} >Save</Text></TouchableOpacity> 
+                            ):(<></>)
+                        }
+                         
                     </View>
                 </View>
             </Modal>
@@ -102,7 +134,7 @@ const Home = () => {
                         <TextInput onChangeText={(value)=>setTitle(value)} style={{borderColor:"#cecece", borderWidth:1, padding:10, marginTop:8, marginBottom:20}} />
                         <Text>Content</Text>
                         <TextInput multiline={true} placeholder="enter the content" style={{height:100,borderColor:"#cecece", borderWidth:1, padding:10, marginTop:8, marginBottom:20   }} onChangeText={(value)=>setContent(value)} />
-
+                        
                         <TouchableOpacity style={{padding:10, backgroundColor:'#000', borderRadius:10}} onPress={handleSubmit} >
                             <Text style={{color:'#ffffff', alignSelf:"center"}}>Submit</Text>
                         </TouchableOpacity>
